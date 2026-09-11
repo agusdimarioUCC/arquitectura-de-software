@@ -11,7 +11,7 @@ cada uno con su `go.mod`, organizados en capas
 
 ## Requisitos
 
-- Go 1.25.
+- Go 1.27 o superior.
 - Docker (para RabbitMQ). El servicio `pedidos` igual arranca sin RabbitMQ:
   si no puede conectarse, publica los eventos por consola.
 
