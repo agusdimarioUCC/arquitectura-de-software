@@ -1,7 +1,26 @@
-# Eventos de e-commerce
+# Contrato del evento `pedido.confirmado`
 
-Esta carpeta queda disponible para guardar modelos o utilidades relacionadas con eventos.
+Publicado por el microservicio `pedidos` cuando un pedido queda confirmado.
+El destinatario conceptual es logística (no se implementa).
 
-El evento mínimo del trabajo es `pedido.confirmado`. Lo publica el microservicio de pedidos cuando confirma una compra.
+## Transporte
 
-El destinatario conceptual es logística, que prepararía el envío. No es necesario crear un consumidor ni un microservicio de logística para aprobar la primera versión.
+- Broker: RabbitMQ (`amqp://user:pass@localhost:5672`).
+- Exchange: default (`""`).
+- Routing key / cola: `pedidos-confirmados` (durable).
+- Propiedades del mensaje: `content_type: application/json`, `delivery_mode: 2` (persistente).
+
+## Payload
+
+```json
+{
+  "tipo": "pedido.confirmado",
+  "pedido_id": "PED-1",
+  "cliente_id": "C-1",
+  "producto_id": "P-1"
+}
+```
+
+El struct correspondiente vive en `pedidos/models/evento.go`
+(`models.EventoPedidoConfirmado`). No se comparte código entre módulos: cada
+microservicio es un módulo Go independiente.
