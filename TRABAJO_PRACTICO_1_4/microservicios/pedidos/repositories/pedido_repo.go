@@ -9,12 +9,12 @@ import (
 
 // PedidosRepo define el contrato de persistencia de pedidos.
 type PedidosRepo interface {
-	Guardar(p models.Pedido) (models.Pedido, error)
+	Guardar(pedido models.Pedido) (models.Pedido, error)
 }
 
 // PedidosMemoria guarda los pedidos confirmados en RAM.
 type PedidosMemoria struct {
-	mu        sync.Mutex
+	mutex     sync.Mutex
 	datos     map[string]models.Pedido
 	secuencia int
 }
@@ -24,13 +24,13 @@ func NuevoPedidosMemoria() *PedidosMemoria {
 	return &PedidosMemoria{datos: make(map[string]models.Pedido)}
 }
 
-func (r *PedidosMemoria) Guardar(p models.Pedido) (models.Pedido, error) {
-	r.mu.Lock()
-	defer r.mu.Unlock()
-	if p.ID == "" {
-		r.secuencia++
-		p.ID = fmt.Sprintf("PED-%d", r.secuencia)
+func (repositorio *PedidosMemoria) Guardar(pedido models.Pedido) (models.Pedido, error) {
+	repositorio.mutex.Lock()
+	defer repositorio.mutex.Unlock()
+	if pedido.ID == "" {
+		repositorio.secuencia++
+		pedido.ID = fmt.Sprintf("PED-%d", repositorio.secuencia)
 	}
-	r.datos[p.ID] = p
-	return p, nil
+	repositorio.datos[pedido.ID] = pedido
+	return pedido, nil
 }

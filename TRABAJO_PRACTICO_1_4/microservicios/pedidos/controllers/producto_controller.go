@@ -14,16 +14,16 @@ type ProductoController struct {
 }
 
 // Registrar monta GET /productos.
-func (pc ProductoController) Registrar(r *gin.Engine) {
-	r.GET("/productos", pc.Listar)
+func (controlador ProductoController) Registrar(router *gin.Engine) {
+	router.GET("/productos", controlador.Listar)
 }
 
 // Listar maneja GET /productos.
-func (pc ProductoController) Listar(ctx *gin.Context) {
-	productos, err := pc.Service.Listar()
+func (controlador ProductoController) Listar(contexto *gin.Context) {
+	productos, err := controlador.Service.Listar()
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		contexto.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-	ctx.JSON(http.StatusOK, gin.H{"productos": productos})
+	contexto.JSON(http.StatusOK, gin.H{"productos": productos})
 }

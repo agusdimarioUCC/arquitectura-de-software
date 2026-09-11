@@ -21,36 +21,36 @@ type crearClienteRequest struct {
 }
 
 // Registrar monta las rutas en el router.
-func (cc ClienteController) Registrar(r *gin.Engine) {
-	r.POST("/clientes", cc.Crear)
-	r.GET("/clientes/:id", cc.ObtenerPorID)
+func (controlador ClienteController) Registrar(router *gin.Engine) {
+	router.POST("/clientes", controlador.Crear)
+	router.GET("/clientes/:id", controlador.ObtenerPorID)
 }
 
 // Crear maneja POST /clientes.
-func (cc ClienteController) Crear(ctx *gin.Context) {
-	var req crearClienteRequest
-	if err := ctx.ShouldBindJSON(&req); err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": "body inválido"})
+func (controlador ClienteController) Crear(contexto *gin.Context) {
+	var solicitud crearClienteRequest
+	if err := contexto.ShouldBindJSON(&solicitud); err != nil {
+		contexto.JSON(http.StatusBadRequest, gin.H{"error": "body inválido"})
 		return
 	}
-	cliente, err := cc.Service.Crear(req.Nombre, req.Email)
+	cliente, err := controlador.Service.Crear(solicitud.Nombre, solicitud.Email)
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		contexto.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	ctx.JSON(http.StatusCreated, cliente)
+	contexto.JSON(http.StatusCreated, cliente)
 }
 
 // ObtenerPorID maneja GET /clientes/:id.
-func (cc ClienteController) ObtenerPorID(ctx *gin.Context) {
-	cliente, err := cc.Service.BuscarPorID(ctx.Param("id"))
+func (controlador ClienteController) ObtenerPorID(contexto *gin.Context) {
+	cliente, err := controlador.Service.BuscarPorID(contexto.Param("id"))
 	if err != nil {
 		if errors.Is(err, repositories.ErrClienteNoEncontrado) {
-			ctx.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
+			contexto.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
 			return
 		}
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		contexto.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	ctx.JSON(http.StatusOK, cliente)
+	contexto.JSON(http.StatusOK, cliente)
 }

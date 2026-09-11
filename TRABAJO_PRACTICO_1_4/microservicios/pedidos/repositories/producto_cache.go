@@ -9,54 +9,54 @@ import (
 )
 
 // ProductosCache decora a otro ProductosRepo con una caché en memoria
-// de tiempo de vida acotado (TTL). Implementa ProductosRepo.
+// de tiempo de vida acotado. Implementa ProductosRepo.
 type ProductosCache struct {
-	Next ProductosRepo
-	TTL  time.Duration
+	Siguiente    ProductosRepo
+	TiempoDeVida time.Duration
 
-	mu        sync.Mutex
-	cache     []models.Producto
-	cargadoEn time.Time
+	mutex          sync.Mutex
+	productosCache []models.Producto
+	cargadoEn      time.Time
 }
 
 // NuevoProductosCache crea la caché sobre el repositorio indicado.
-func NuevoProductosCache(next ProductosRepo, ttl time.Duration) *ProductosCache {
-	return &ProductosCache{Next: next, TTL: ttl}
+func NuevoProductosCache(siguiente ProductosRepo, tiempoDeVida time.Duration) *ProductosCache {
+	return &ProductosCache{Siguiente: siguiente, TiempoDeVida: tiempoDeVida}
 }
 
-func (c *ProductosCache) Listar() ([]models.Producto, error) {
-	c.mu.Lock()
-	defer c.mu.Unlock()
+func (decorador *ProductosCache) Listar() ([]models.Producto, error) {
+	decorador.mutex.Lock()
+	defer decorador.mutex.Unlock()
 
-	if c.cache != nil && time.Since(c.cargadoEn) < c.TTL {
+	if decorador.productosCache != nil && time.Since(decorador.cargadoEn) < decorador.TiempoDeVida {
 		log.Println("CACHE HIT (productos)")
-		return c.copiaCache(), nil
+		return decorador.copiaCache(), nil
 	}
 
 	log.Println("CACHE MISS (productos)")
-	lista, err := c.Next.Listar()
+	lista, err := decorador.Siguiente.Listar()
 	if err != nil {
 		return nil, err
 	}
-	c.cache = lista
-	c.cargadoEn = time.Now()
-	return c.copiaCache(), nil
+	decorador.productosCache = lista
+	decorador.cargadoEn = time.Now()
+	return decorador.copiaCache(), nil
 }
 
-func (c *ProductosCache) copiaCache() []models.Producto {
-	copia := make([]models.Producto, len(c.cache))
-	copy(copia, c.cache)
+func (decorador *ProductosCache) copiaCache() []models.Producto {
+	copia := make([]models.Producto, len(decorador.productosCache))
+	copy(copia, decorador.productosCache)
 	return copia
 }
 
-func (c *ProductosCache) BuscarPorID(id string) (models.Producto, error) {
-	lista, err := c.Listar()
+func (decorador *ProductosCache) BuscarPorID(identificador string) (models.Producto, error) {
+	lista, err := decorador.Listar()
 	if err != nil {
 		return models.Producto{}, err
 	}
-	for _, p := range lista {
-		if p.ID == id {
-			return p, nil
+	for _, producto := range lista {
+		if producto.ID == identificador {
+			return producto, nil
 		}
 	}
 	return models.Producto{}, ErrProductoNoEncontrado

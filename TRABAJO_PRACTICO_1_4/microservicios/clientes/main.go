@@ -11,8 +11,8 @@ import (
 )
 
 func main() {
-	repo := repositories.NuevoClientesMemoria()
-	servicio := services.NuevoClienteService(repo)
+	repositorio := repositories.NuevoClientesMemoria()
+	servicio := services.NuevoClienteService(repositorio)
 	controlador := controllers.ClienteController{Service: servicio}
 
 	router := gin.Default()

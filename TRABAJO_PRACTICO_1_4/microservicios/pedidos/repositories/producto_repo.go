@@ -13,7 +13,7 @@ var ErrProductoNoEncontrado = errors.New("producto no encontrado")
 // ProductosRepo define el contrato de acceso al catálogo.
 type ProductosRepo interface {
 	Listar() ([]models.Producto, error)
-	BuscarPorID(id string) (models.Producto, error)
+	BuscarPorID(identificador string) (models.Producto, error)
 }
 
 // ProductosMemoria es un catálogo fijo en RAM.
@@ -29,19 +29,19 @@ func NuevoProductosMemoria() *ProductosMemoria {
 	}}
 }
 
-func (r *ProductosMemoria) Listar() ([]models.Producto, error) {
+func (repositorio *ProductosMemoria) Listar() ([]models.Producto, error) {
 	// Simula la latencia de una base de datos real para que el efecto
 	// de la caché sea observable.
 	time.Sleep(300 * time.Millisecond)
-	copia := make([]models.Producto, len(r.datos))
-	copy(copia, r.datos)
+	copia := make([]models.Producto, len(repositorio.datos))
+	copy(copia, repositorio.datos)
 	return copia, nil
 }
 
-func (r *ProductosMemoria) BuscarPorID(id string) (models.Producto, error) {
-	for _, p := range r.datos {
-		if p.ID == id {
-			return p, nil
+func (repositorio *ProductosMemoria) BuscarPorID(identificador string) (models.Producto, error) {
+	for _, producto := range repositorio.datos {
+		if producto.ID == identificador {
+			return producto, nil
 		}
 	}
 	return models.Producto{}, ErrProductoNoEncontrado

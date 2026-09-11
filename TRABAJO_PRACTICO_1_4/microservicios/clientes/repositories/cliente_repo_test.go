@@ -8,9 +8,9 @@ import (
 )
 
 func TestClientesMemoria_CrearAsignaIDYPersiste(t *testing.T) {
-	repo := NuevoClientesMemoria()
+	repositorio := NuevoClientesMemoria()
 
-	creado, err := repo.Crear(models.Cliente{Nombre: "Ana Perez", Email: "ana@x.com"})
+	creado, err := repositorio.Crear(models.Cliente{Nombre: "Ana Perez", Email: "ana@x.com"})
 	if err != nil {
 		t.Fatalf("no se esperaba error: %v", err)
 	}
@@ -18,7 +18,7 @@ func TestClientesMemoria_CrearAsignaIDYPersiste(t *testing.T) {
 		t.Fatal("se esperaba un ID asignado")
 	}
 
-	encontrado, err := repo.BuscarPorID(creado.ID)
+	encontrado, err := repositorio.BuscarPorID(creado.ID)
 	if err != nil {
 		t.Fatalf("no se esperaba error al buscar: %v", err)
 	}
@@ -28,17 +28,17 @@ func TestClientesMemoria_CrearAsignaIDYPersiste(t *testing.T) {
 }
 
 func TestClientesMemoria_IDsCorrelativos(t *testing.T) {
-	repo := NuevoClientesMemoria()
-	c1, _ := repo.Crear(models.Cliente{Nombre: "Uno"})
-	c2, _ := repo.Crear(models.Cliente{Nombre: "Dos"})
-	if c1.ID != "C-1" || c2.ID != "C-2" {
-		t.Errorf("IDs = %q, %q; se esperaba C-1, C-2", c1.ID, c2.ID)
+	repositorio := NuevoClientesMemoria()
+	primerCliente, _ := repositorio.Crear(models.Cliente{Nombre: "Uno"})
+	segundoCliente, _ := repositorio.Crear(models.Cliente{Nombre: "Dos"})
+	if primerCliente.ID != "C-1" || segundoCliente.ID != "C-2" {
+		t.Errorf("IDs = %q, %q; se esperaba C-1, C-2", primerCliente.ID, segundoCliente.ID)
 	}
 }
 
 func TestClientesMemoria_BuscarInexistente(t *testing.T) {
-	repo := NuevoClientesMemoria()
-	_, err := repo.BuscarPorID("C-99")
+	repositorio := NuevoClientesMemoria()
+	_, err := repositorio.BuscarPorID("C-99")
 	if !errors.Is(err, ErrClienteNoEncontrado) {
 		t.Errorf("err = %v; se esperaba ErrClienteNoEncontrado", err)
 	}

@@ -21,34 +21,34 @@ type confirmarPedidoRequest struct {
 }
 
 // Registrar monta POST /pedidos.
-func (pc PedidoController) Registrar(r *gin.Engine) {
-	r.POST("/pedidos", pc.Confirmar)
+func (controlador PedidoController) Registrar(router *gin.Engine) {
+	router.POST("/pedidos", controlador.Confirmar)
 }
 
 // Confirmar maneja POST /pedidos.
-func (pc PedidoController) Confirmar(ctx *gin.Context) {
-	var req confirmarPedidoRequest
-	if err := ctx.ShouldBindJSON(&req); err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": "body inválido"})
+func (controlador PedidoController) Confirmar(contexto *gin.Context) {
+	var solicitud confirmarPedidoRequest
+	if err := contexto.ShouldBindJSON(&solicitud); err != nil {
+		contexto.JSON(http.StatusBadRequest, gin.H{"error": "body inválido"})
 		return
 	}
 
-	pedido, err := pc.Service.Confirmar(req.ClienteID, req.ProductoID, req.Cantidad)
+	pedido, err := controlador.Service.Confirmar(solicitud.ClienteID, solicitud.ProductoID, solicitud.Cantidad)
 	if err != nil {
 		switch {
 		case errors.Is(err, services.ErrValidacion):
-			ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			contexto.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		case errors.Is(err, services.ErrProductoNoEncontrado):
-			ctx.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
+			contexto.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
 		case errors.Is(err, services.ErrPublicacion):
-			ctx.JSON(http.StatusBadGateway, gin.H{"error": err.Error(), "pedido_id": pedido.ID})
+			contexto.JSON(http.StatusBadGateway, gin.H{"error": err.Error(), "pedido_id": pedido.ID})
 		default:
-			ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			contexto.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		}
 		return
 	}
 
-	ctx.JSON(http.StatusCreated, gin.H{
+	contexto.JSON(http.StatusCreated, gin.H{
 		"mensaje":   "pedido confirmado",
 		"pedido_id": pedido.ID,
 		"estado":    pedido.Estado,

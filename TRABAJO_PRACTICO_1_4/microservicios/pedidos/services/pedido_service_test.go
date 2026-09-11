@@ -10,123 +10,123 @@ import (
 
 // --- dobles de prueba ---
 
-type productosFake struct{ existentes map[string]models.Producto }
+type productosSimulados struct{ existentes map[string]models.Producto }
 
-func (f productosFake) Listar() ([]models.Producto, error) {
-	out := make([]models.Producto, 0, len(f.existentes))
-	for _, p := range f.existentes {
-		out = append(out, p)
+func (simulado productosSimulados) Listar() ([]models.Producto, error) {
+	lista := make([]models.Producto, 0, len(simulado.existentes))
+	for _, producto := range simulado.existentes {
+		lista = append(lista, producto)
 	}
-	return out, nil
+	return lista, nil
 }
-func (f productosFake) BuscarPorID(id string) (models.Producto, error) {
-	if p, ok := f.existentes[id]; ok {
-		return p, nil
+func (simulado productosSimulados) BuscarPorID(identificador string) (models.Producto, error) {
+	if producto, existe := simulado.existentes[identificador]; existe {
+		return producto, nil
 	}
 	return models.Producto{}, repositories.ErrProductoNoEncontrado
 }
 
-type pedidosFake struct{ guardados []models.Pedido }
+type pedidosSimulados struct{ guardados []models.Pedido }
 
-func (f *pedidosFake) Guardar(p models.Pedido) (models.Pedido, error) {
-	if p.ID == "" {
-		p.ID = "PED-TEST"
+func (simulado *pedidosSimulados) Guardar(pedido models.Pedido) (models.Pedido, error) {
+	if pedido.ID == "" {
+		pedido.ID = "PED-TEST"
 	}
-	f.guardados = append(f.guardados, p)
-	return p, nil
+	simulado.guardados = append(simulado.guardados, pedido)
+	return pedido, nil
 }
 
-type publisherFake struct {
-	ultimo   models.EventoPedidoConfirmado
-	llamado  bool
-	devuelve error
+type publicadorSimulado struct {
+	ultimoEvento models.EventoPedidoConfirmado
+	llamado      bool
+	devuelve     error
 }
 
-func (f *publisherFake) PublicarPedidoConfirmado(e models.EventoPedidoConfirmado) error {
-	f.llamado = true
-	f.ultimo = e
-	return f.devuelve
+func (simulado *publicadorSimulado) PublicarPedidoConfirmado(evento models.EventoPedidoConfirmado) error {
+	simulado.llamado = true
+	simulado.ultimoEvento = evento
+	return simulado.devuelve
 }
 
-func nuevoService(pub *publisherFake) (PedidoService, *pedidosFake) {
-	prod := productosFake{existentes: map[string]models.Producto{
+func nuevoServicio(publicador *publicadorSimulado) (PedidoService, *pedidosSimulados) {
+	productos := productosSimulados{existentes: map[string]models.Producto{
 		"P-1": {ID: "P-1", Nombre: "Auriculares", Precio: 25000, Stock: 10},
 	}}
-	ped := &pedidosFake{}
-	return NuevoPedidoService(prod, ped, pub), ped
+	pedidos := &pedidosSimulados{}
+	return NuevoPedidoService(productos, pedidos, publicador), pedidos
 }
 
 // --- tests ---
 
 func TestConfirmar_OkPublicaEvento(t *testing.T) {
-	pub := &publisherFake{}
-	svc, ped := nuevoService(pub)
+	publicador := &publicadorSimulado{}
+	servicio, pedidosGuardados := nuevoServicio(publicador)
 
-	pedido, err := svc.Confirmar("C-1", "P-1", 2)
+	pedido, err := servicio.Confirmar("C-1", "P-1", 2)
 	if err != nil {
 		t.Fatalf("no se esperaba error: %v", err)
 	}
 	if pedido.Estado != "confirmado" {
 		t.Errorf("estado = %q; se esperaba confirmado", pedido.Estado)
 	}
-	if len(ped.guardados) != 1 {
-		t.Errorf("pedidos guardados = %d; se esperaba 1", len(ped.guardados))
+	if len(pedidosGuardados.guardados) != 1 {
+		t.Errorf("pedidos guardados = %d; se esperaba 1", len(pedidosGuardados.guardados))
 	}
-	if !pub.llamado {
+	if !publicador.llamado {
 		t.Fatal("no se publicó el evento")
 	}
-	if pub.ultimo.Tipo != models.TipoPedidoConfirmado ||
-		pub.ultimo.PedidoID != pedido.ID ||
-		pub.ultimo.ClienteID != "C-1" ||
-		pub.ultimo.ProductoID != "P-1" {
-		t.Errorf("evento inesperado: %+v", pub.ultimo)
+	if publicador.ultimoEvento.Tipo != models.TipoPedidoConfirmado ||
+		publicador.ultimoEvento.PedidoID != pedido.ID ||
+		publicador.ultimoEvento.ClienteID != "C-1" ||
+		publicador.ultimoEvento.ProductoID != "P-1" {
+		t.Errorf("evento inesperado: %+v", publicador.ultimoEvento)
 	}
 }
 
 func TestConfirmar_ProductoInexistente(t *testing.T) {
-	pub := &publisherFake{}
-	svc, _ := nuevoService(pub)
+	publicador := &publicadorSimulado{}
+	servicio, _ := nuevoServicio(publicador)
 
-	_, err := svc.Confirmar("C-1", "P-99", 1)
+	_, err := servicio.Confirmar("C-1", "P-99", 1)
 	if !errors.Is(err, ErrProductoNoEncontrado) {
 		t.Errorf("err = %v; se esperaba ErrProductoNoEncontrado", err)
 	}
-	if pub.llamado {
+	if publicador.llamado {
 		t.Error("no debería publicarse evento si el producto no existe")
 	}
 }
 
 func TestConfirmar_CantidadInvalida(t *testing.T) {
-	pub := &publisherFake{}
-	svc, _ := nuevoService(pub)
+	publicador := &publicadorSimulado{}
+	servicio, _ := nuevoServicio(publicador)
 
-	_, err := svc.Confirmar("C-1", "P-1", 0)
+	_, err := servicio.Confirmar("C-1", "P-1", 0)
 	if !errors.Is(err, ErrValidacion) {
 		t.Errorf("err = %v; se esperaba ErrValidacion", err)
 	}
 }
 
 func TestConfirmar_CamposVacios(t *testing.T) {
-	pub := &publisherFake{}
-	svc, _ := nuevoService(pub)
+	publicador := &publicadorSimulado{}
+	servicio, _ := nuevoServicio(publicador)
 
-	if _, err := svc.Confirmar("", "P-1", 1); !errors.Is(err, ErrValidacion) {
+	if _, err := servicio.Confirmar("", "P-1", 1); !errors.Is(err, ErrValidacion) {
 		t.Errorf("cliente vacío: err = %v", err)
 	}
-	if _, err := svc.Confirmar("C-1", "  ", 1); !errors.Is(err, ErrValidacion) {
+	if _, err := servicio.Confirmar("C-1", "  ", 1); !errors.Is(err, ErrValidacion) {
 		t.Errorf("producto vacío: err = %v", err)
 	}
 }
 
 func TestConfirmar_FalloAlPublicar(t *testing.T) {
-	pub := &publisherFake{devuelve: errors.New("broker caído")}
-	svc, ped := nuevoService(pub)
+	publicador := &publicadorSimulado{devuelve: errors.New("broker caído")}
+	servicio, pedidosGuardados := nuevoServicio(publicador)
 
-	pedido, err := svc.Confirmar("C-1", "P-1", 1)
+	pedido, err := servicio.Confirmar("C-1", "P-1", 1)
 	if !errors.Is(err, ErrPublicacion) {
 		t.Errorf("err = %v; se esperaba ErrPublicacion", err)
 	}
-	if len(ped.guardados) != 1 {
+	if len(pedidosGuardados.guardados) != 1 {
 		t.Error("el pedido debería haberse guardado igual antes de publicar")
 	}
 	if pedido.ID == "" {

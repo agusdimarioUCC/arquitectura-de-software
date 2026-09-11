@@ -7,15 +7,15 @@ import (
 
 // ProductoService expone el catálogo (a través de la caché).
 type ProductoService struct {
-	Repo repositories.ProductosRepo
+	Repositorio repositories.ProductosRepo
 }
 
 // NuevoProductoService cablea el servicio con su repositorio.
-func NuevoProductoService(r repositories.ProductosRepo) ProductoService {
-	return ProductoService{Repo: r}
+func NuevoProductoService(repositorio repositories.ProductosRepo) ProductoService {
+	return ProductoService{Repositorio: repositorio}
 }
 
 // Listar devuelve todos los productos disponibles.
-func (s ProductoService) Listar() ([]models.Producto, error) {
-	return s.Repo.Listar()
+func (servicio ProductoService) Listar() ([]models.Producto, error) {
+	return servicio.Repositorio.Listar()
 }

@@ -7,30 +7,30 @@ import (
 	"pedidos/models"
 )
 
-type productosRepoFake struct {
+type productosRepoSimulado struct {
 	llamadasListar int
 	datos          []models.Producto
 }
 
-func (f *productosRepoFake) Listar() ([]models.Producto, error) {
-	f.llamadasListar++
-	copia := make([]models.Producto, len(f.datos))
-	copy(copia, f.datos)
+func (simulado *productosRepoSimulado) Listar() ([]models.Producto, error) {
+	simulado.llamadasListar++
+	copia := make([]models.Producto, len(simulado.datos))
+	copy(copia, simulado.datos)
 	return copia, nil
 }
 
-func (f *productosRepoFake) BuscarPorID(id string) (models.Producto, error) {
-	for _, p := range f.datos {
-		if p.ID == id {
-			return p, nil
+func (simulado *productosRepoSimulado) BuscarPorID(identificador string) (models.Producto, error) {
+	for _, producto := range simulado.datos {
+		if producto.ID == identificador {
+			return producto, nil
 		}
 	}
 	return models.Producto{}, ErrProductoNoEncontrado
 }
 
 func TestProductosCache_SegundaLlamadaNoTocaElRepo(t *testing.T) {
-	fake := &productosRepoFake{datos: []models.Producto{{ID: "P-1", Nombre: "Auriculares"}}}
-	cache := NuevoProductosCache(fake, time.Minute)
+	simulado := &productosRepoSimulado{datos: []models.Producto{{ID: "P-1", Nombre: "Auriculares"}}}
+	cache := NuevoProductosCache(simulado, time.Minute)
 
 	if _, err := cache.Listar(); err != nil {
 		t.Fatalf("error: %v", err)
@@ -38,34 +38,34 @@ func TestProductosCache_SegundaLlamadaNoTocaElRepo(t *testing.T) {
 	if _, err := cache.Listar(); err != nil {
 		t.Fatalf("error: %v", err)
 	}
-	if fake.llamadasListar != 1 {
-		t.Errorf("llamadasListar = %d; se esperaba 1 (segunda desde caché)", fake.llamadasListar)
+	if simulado.llamadasListar != 1 {
+		t.Errorf("llamadasListar = %d; se esperaba 1 (segunda desde caché)", simulado.llamadasListar)
 	}
 }
 
 func TestProductosCache_RecargaAlExpirarElTTL(t *testing.T) {
-	fake := &productosRepoFake{datos: []models.Producto{{ID: "P-1"}}}
-	cache := NuevoProductosCache(fake, 20*time.Millisecond)
+	simulado := &productosRepoSimulado{datos: []models.Producto{{ID: "P-1"}}}
+	cache := NuevoProductosCache(simulado, 20*time.Millisecond)
 
 	_, _ = cache.Listar()
 	time.Sleep(40 * time.Millisecond)
 	_, _ = cache.Listar()
 
-	if fake.llamadasListar != 2 {
-		t.Errorf("llamadasListar = %d; se esperaba 2 (recarga tras expirar)", fake.llamadasListar)
+	if simulado.llamadasListar != 2 {
+		t.Errorf("llamadasListar = %d; se esperaba 2 (recarga tras expirar)", simulado.llamadasListar)
 	}
 }
 
 func TestProductosCache_BuscarPorIDUsaLaCache(t *testing.T) {
-	fake := &productosRepoFake{datos: []models.Producto{{ID: "P-1", Nombre: "Auriculares"}}}
-	cache := NuevoProductosCache(fake, time.Minute)
+	simulado := &productosRepoSimulado{datos: []models.Producto{{ID: "P-1", Nombre: "Auriculares"}}}
+	cache := NuevoProductosCache(simulado, time.Minute)
 
 	_, _ = cache.Listar()
-	p, err := cache.BuscarPorID("P-1")
-	if err != nil || p.Nombre != "Auriculares" {
-		t.Fatalf("p = %+v, err = %v", p, err)
+	producto, err := cache.BuscarPorID("P-1")
+	if err != nil || producto.Nombre != "Auriculares" {
+		t.Fatalf("producto = %+v, err = %v", producto, err)
 	}
-	if fake.llamadasListar != 1 {
-		t.Errorf("llamadasListar = %d; se esperaba 1", fake.llamadasListar)
+	if simulado.llamadasListar != 1 {
+		t.Errorf("llamadasListar = %d; se esperaba 1", simulado.llamadasListar)
 	}
 }

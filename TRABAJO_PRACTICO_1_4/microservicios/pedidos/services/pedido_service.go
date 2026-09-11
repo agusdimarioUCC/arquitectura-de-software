@@ -29,14 +29,14 @@ type PedidoService struct {
 }
 
 // NuevoPedidoService cablea el servicio con sus dependencias.
-func NuevoPedidoService(prod repositories.ProductosRepo, ped repositories.PedidosRepo, pub messaging.EventoPublisher) PedidoService {
-	return PedidoService{Productos: prod, Pedidos: ped, Publisher: pub}
+func NuevoPedidoService(productos repositories.ProductosRepo, pedidos repositories.PedidosRepo, publicador messaging.EventoPublisher) PedidoService {
+	return PedidoService{Productos: productos, Pedidos: pedidos, Publisher: publicador}
 }
 
 // Confirmar valida el pedido, lo persiste y publica pedido.confirmado.
 // Si la publicación falla, el pedido ya quedó guardado y se devuelve
 // junto a un error que envuelve ErrPublicacion.
-func (s PedidoService) Confirmar(clienteID, productoID string, cantidad int) (models.Pedido, error) {
+func (servicio PedidoService) Confirmar(clienteID, productoID string, cantidad int) (models.Pedido, error) {
 	if strings.TrimSpace(clienteID) == "" || strings.TrimSpace(productoID) == "" {
 		return models.Pedido{}, fmt.Errorf("%w: cliente_id y producto_id son obligatorios", ErrValidacion)
 	}
@@ -44,11 +44,11 @@ func (s PedidoService) Confirmar(clienteID, productoID string, cantidad int) (mo
 		return models.Pedido{}, fmt.Errorf("%w: la cantidad debe ser mayor a 0", ErrValidacion)
 	}
 
-	if _, err := s.Productos.BuscarPorID(productoID); err != nil {
+	if _, err := servicio.Productos.BuscarPorID(productoID); err != nil {
 		return models.Pedido{}, err
 	}
 
-	pedido, err := s.Pedidos.Guardar(models.Pedido{
+	pedido, err := servicio.Pedidos.Guardar(models.Pedido{
 		ClienteID:  clienteID,
 		ProductoID: productoID,
 		Cantidad:   cantidad,
@@ -64,7 +64,7 @@ func (s PedidoService) Confirmar(clienteID, productoID string, cantidad int) (mo
 		ClienteID:  pedido.ClienteID,
 		ProductoID: pedido.ProductoID,
 	}
-	if err := s.Publisher.PublicarPedidoConfirmado(evento); err != nil {
+	if err := servicio.Publisher.PublicarPedidoConfirmado(evento); err != nil {
 		log.Printf("ERROR publicando evento de %s: %v", pedido.ID, err)
 		return pedido, fmt.Errorf("%w: %v", ErrPublicacion, err)
 	}

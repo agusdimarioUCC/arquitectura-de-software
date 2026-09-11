@@ -6,8 +6,8 @@ import (
 )
 
 func TestProductosMemoria_ListarDevuelveSeed(t *testing.T) {
-	repo := NuevoProductosMemoria()
-	lista, err := repo.Listar()
+	repositorio := NuevoProductosMemoria()
+	lista, err := repositorio.Listar()
 	if err != nil {
 		t.Fatalf("no se esperaba error: %v", err)
 	}
@@ -17,30 +17,30 @@ func TestProductosMemoria_ListarDevuelveSeed(t *testing.T) {
 }
 
 func TestProductosMemoria_BuscarPorIDExistente(t *testing.T) {
-	repo := NuevoProductosMemoria()
-	p, err := repo.BuscarPorID("P-1")
+	repositorio := NuevoProductosMemoria()
+	producto, err := repositorio.BuscarPorID("P-1")
 	if err != nil {
 		t.Fatalf("no se esperaba error: %v", err)
 	}
-	if p.Nombre != "Auriculares" {
-		t.Errorf("nombre = %q; se esperaba %q", p.Nombre, "Auriculares")
+	if producto.Nombre != "Auriculares" {
+		t.Errorf("nombre = %q; se esperaba %q", producto.Nombre, "Auriculares")
 	}
 }
 
 func TestProductosMemoria_BuscarPorIDInexistente(t *testing.T) {
-	repo := NuevoProductosMemoria()
-	_, err := repo.BuscarPorID("P-99")
+	repositorio := NuevoProductosMemoria()
+	_, err := repositorio.BuscarPorID("P-99")
 	if !errors.Is(err, ErrProductoNoEncontrado) {
 		t.Errorf("err = %v; se esperaba ErrProductoNoEncontrado", err)
 	}
 }
 
 func TestProductosMemoria_ListarDevuelveCopia(t *testing.T) {
-	repo := NuevoProductosMemoria()
-	lista, _ := repo.Listar()
+	repositorio := NuevoProductosMemoria()
+	lista, _ := repositorio.Listar()
 	lista[0].Nombre = "MUTADO"
-	otra, _ := repo.Listar()
-	if otra[0].Nombre == "MUTADO" {
+	otraLista, _ := repositorio.Listar()
+	if otraLista[0].Nombre == "MUTADO" {
 		t.Error("Listar devolvió una referencia mutable al estado interno")
 	}
 }
