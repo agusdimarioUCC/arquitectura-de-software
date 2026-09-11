@@ -1,6 +1,7 @@
 package messaging
 
 import (
+	"encoding/json"
 	"testing"
 
 	"pedidos/models"
@@ -27,5 +28,15 @@ func TestPublisherConsola_NoFalla(t *testing.T) {
 func TestNombreCola(t *testing.T) {
 	if NombreCola != "pedidos-confirmados" {
 		t.Errorf("NombreCola = %q", NombreCola)
+	}
+}
+
+func TestEvento_SerializaSegunElContrato(t *testing.T) {
+	b, _ := json.Marshal(models.EventoPedidoConfirmado{
+		Tipo: models.TipoPedidoConfirmado, PedidoID: "PED-1", ClienteID: "C-1", ProductoID: "P-1",
+	})
+	esperado := `{"tipo":"pedido.confirmado","pedido_id":"PED-1","cliente_id":"C-1","producto_id":"P-1"}`
+	if string(b) != esperado {
+		t.Errorf("payload = %s; se esperaba %s", b, esperado)
 	}
 }

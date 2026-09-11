@@ -33,7 +33,7 @@ func TestPostClientes_Creado(t *testing.T) {
 	}
 	var cuerpo map[string]any
 	_ = json.Unmarshal(w.Body.Bytes(), &cuerpo)
-	if cuerpo["id"] == "" || cuerpo["nombre"] != "Ana Perez" {
+	if cuerpo["id"] == nil || cuerpo["id"] == "" || cuerpo["nombre"] != "Ana Perez" {
 		t.Errorf("body inesperado: %v", cuerpo)
 	}
 }

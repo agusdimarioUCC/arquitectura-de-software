@@ -19,14 +19,14 @@ cada uno con su `go.mod`, organizados en capas
 
 ```bash
 # 1. RabbitMQ (desde la carpeta CLASE_4 del repo)
-cd ../../CLASE_4 && docker compose up -d
+cd CLASE_4 && docker compose up -d
 #    panel: http://localhost:15672  (user / pass)
 
 # 2. Servicio clientes (terminal A)
-cd clientes && go mod tidy && go run .
+cd TRABAJO_PRACTICO_1_4/microservicios/clientes && go mod tidy && go run .
 
 # 3. Servicio pedidos (terminal B)
-cd pedidos && go mod tidy && go run .
+cd TRABAJO_PRACTICO_1_4/microservicios/pedidos && go mod tidy && go run .
 ```
 
 ## Ejemplos
@@ -52,10 +52,10 @@ evento aparece en el log de `pedidos` con el prefijo `[evento-consola]`.
 ## Tests
 
 ```bash
-cd clientes && go test ./...
-cd pedidos  && go test ./...
+cd TRABAJO_PRACTICO_1_4/microservicios/clientes && go test ./...
+cd TRABAJO_PRACTICO_1_4/microservicios/pedidos  && go test ./...
 ```
 
 ## Contrato del evento
 
-Ver `../microservicios/eventos/README.md`.
+Ver `eventos/README.md`.
