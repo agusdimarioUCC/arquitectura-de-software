@@ -32,8 +32,7 @@ func main() {
 	}
 
 	// TODO: conectar la cola de facturación al exchange.
-	// Pista: QueueBind(queueName, "", exchangeName, false, nil)
-	// En fanout, "" está bien: el exchange envía una copia a todas las colas vinculadas.
+	ch.QueueBind(queueName, "", exchangeName, false, nil)
 
 	messages, err := ch.Consume(queueName, "", true, false, false, false, nil)
 	if err != nil {

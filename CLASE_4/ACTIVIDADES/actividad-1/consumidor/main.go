@@ -46,7 +46,10 @@ func main() {
 	// if err != nil {
 	//     log.Fatal(err)
 	// }
-
+	err = ch.Qos(1, 0, false)
+	if err != nil {
+		return
+	}
 	messages, err := ch.Consume(queueName, "", false, false, false, false, nil)
 	if err != nil {
 		log.Fatal(err)

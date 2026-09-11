@@ -32,7 +32,7 @@ func main() {
 	}
 
 	// TODO: conectar la cola de logística al exchange.
-	// Usá la misma estructura que en facturación, pero con queueName = q.logistica.
+	ch.QueueBind(queueName, "", exchangeName, false, nil)
 
 	messages, err := ch.Consume(queueName, "", true, false, false, false, nil)
 	if err != nil {
