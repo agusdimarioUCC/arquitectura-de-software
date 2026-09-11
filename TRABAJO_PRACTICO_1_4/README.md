@@ -37,7 +37,6 @@ No es necesario implementar autenticación, frontend, pagos, stock real, una bas
 ```text
 TRABAJO_PRACTICO_1_4/
 ├── README.md
-├── ARQUITECTURA.md
 ├── monolito/
 │   ├── go.mod
 │   ├── main.go
